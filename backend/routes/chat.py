@@ -58,6 +58,9 @@ def send_message():
         # Log error but don't expose stack trace to client
         import logging
         logging.error(f"Error processing request: {str(e)}")
+        error_text = str(e)
+        if error_text.startswith('Grok API error') or 'GROK_API_KEY environment variable not set' in error_text:
+            return jsonify({'error': error_text}), 502
         return jsonify({'error': 'Error processing request. Please try again.'}), 500
 
 @chat_bp.route('/categories', methods=['GET'])

@@ -11,11 +11,16 @@ def create_app(config_name=None):
     
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+
+    cors_origins = os.getenv(
+        'CORS_ORIGINS_REGEX',
+        r'^https?://(localhost|127\.0\.0\.1)(:\d+)?$'
+    )
     
     # Enable CORS
     CORS(app, resources={
         r"/api/*": {
-            "origins": app.config['CORS_ORIGINS'],
+            "origins": cors_origins,
             "methods": ["GET", "POST", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type"]
         }

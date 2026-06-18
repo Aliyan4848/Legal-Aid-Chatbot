@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import Head from 'next/head';
-import Header from '@/components/Header';
-import ChatInterface from '@/components/ChatInterface';
-import { useChatStore } from '@/store/chatStore';
+import Header from '../components/Header';
+import ChatInterface from '../components/ChatInterface';
+import { useChatStore } from '../store/chatStore';
 
 export default function Chat() {
   const { setSessionId } = useChatStore();

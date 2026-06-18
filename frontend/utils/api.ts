@@ -15,6 +15,30 @@ class ApiClient {
     });
   }
 
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (axios.isAxiosError(error)) {
+      const responseError = error.response?.data;
+      if (typeof responseError === 'string') {
+        return responseError;
+      }
+      if (responseError && typeof responseError === 'object' && 'error' in responseError) {
+        const message = (responseError as { error?: unknown }).error;
+        if (typeof message === 'string' && message.trim()) {
+          return message;
+        }
+      }
+      if (error.message) {
+        return error.message;
+      }
+    }
+
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+
+    return fallback;
+  }
+
   async sendMessage(message: string, sessionId: string, category?: string) {
     try {
       const response = await this.client.post('/api/chat/message', {
@@ -24,7 +48,7 @@ class ApiClient {
       });
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to send message: ${error}`);
+      throw new Error(this.getErrorMessage(error, 'Failed to send message'));
     }
   }
 
@@ -33,7 +57,7 @@ class ApiClient {
       const response = await this.client.get('/api/chat/categories');
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to fetch categories: ${error}`);
+      throw new Error(this.getErrorMessage(error, 'Failed to fetch categories'));
     }
   }
 
@@ -42,7 +66,7 @@ class ApiClient {
       const response = await this.client.get(`/api/chat/history/${sessionId}`);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to fetch history: ${error}`);
+      throw new Error(this.getErrorMessage(error, 'Failed to fetch history'));
     }
   }
 
@@ -51,7 +75,7 @@ class ApiClient {
       const response = await this.client.delete(`/api/chat/clear/${sessionId}`);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to clear history: ${error}`);
+      throw new Error(this.getErrorMessage(error, 'Failed to clear history'));
     }
   }
 
@@ -60,7 +84,7 @@ class ApiClient {
       const response = await this.client.get('/health');
       return response.data;
     } catch (error) {
-      throw new Error(`Health check failed: ${error}`);
+      throw new Error(this.getErrorMessage(error, 'Health check failed'));
     }
   }
 }

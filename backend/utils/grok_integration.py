@@ -1,17 +1,17 @@
 import os
-import requests
 from typing import Optional
 
-GROK_API_URL = "https://api.x.ai/v1/chat/completions"
+from groq import Groq
 
 class GrokClient:
     """Client for interacting with Grok API"""
     
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("GROK_API_KEY")
+        self.api_key = api_key or os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY")
         if not self.api_key:
-            raise ValueError("GROK_API_KEY environment variable not set")
-        self.base_url = GROK_API_URL
+            raise ValueError("GROQ_API_KEY environment variable not set")
+        self.client = Groq(api_key=self.api_key)
+        self.model = os.getenv("GROQ_MODEL", os.getenv("GROK_MODEL", "llama-3.3-70b-versatile"))
     
     def chat(self, messages: list, temperature: float = 0.7, max_tokens: int = 2000) -> str:
         """
@@ -25,30 +25,15 @@ class GrokClient:
         Returns:
             Response text from Grok API
         """
-        headers = {
-            "Authorization": f"******",
-            "Content-Type": "application/json",
-        }
-        
-        payload = {
-            "messages": messages,
-            "model": "grok-2",
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        }
-        
         try:
-            response = requests.post(
-                self.base_url,
-                json=payload,
-                headers=headers,
-                timeout=30
+            response = self.client.chat.completions.create(
+                messages=messages,
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
-            response.raise_for_status()
-            
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
-        except requests.exceptions.RequestException as e:
+            return response.choices[0].message.content
+        except Exception as e:
             raise Exception(f"Grok API error: {str(e)}")
     
     def get_legal_advice(self, query: str, context: str = "") -> str:

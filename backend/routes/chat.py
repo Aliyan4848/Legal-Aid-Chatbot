@@ -52,10 +52,13 @@ def send_message():
             'session_id': session_id
         })
     
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+    except ValueError:
+        return jsonify({'error': 'Invalid request parameters'}), 400
     except Exception as e:
-        return jsonify({'error': f'Error processing request: {str(e)}'}), 500
+        # Log error but don't expose stack trace to client
+        import logging
+        logging.error(f"Error processing request: {str(e)}")
+        return jsonify({'error': 'Error processing request. Please try again.'}), 500
 
 @chat_bp.route('/categories', methods=['GET'])
 def get_categories():
@@ -67,7 +70,9 @@ def get_categories():
             'categories': categories
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import logging
+        logging.error(f"Error fetching categories: {str(e)}")
+        return jsonify({'error': 'Error fetching categories'}), 500
 
 @chat_bp.route('/history/<session_id>', methods=['GET'])
 def get_history(session_id):
@@ -80,7 +85,9 @@ def get_history(session_id):
             'session_id': session_id
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import logging
+        logging.error(f"Error fetching history: {str(e)}")
+        return jsonify({'error': 'Error fetching history'}), 500
 
 @chat_bp.route('/clear/<session_id>', methods=['DELETE'])
 def clear_history(session_id):
@@ -93,4 +100,6 @@ def clear_history(session_id):
             'message': 'Conversation cleared'
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import logging
+        logging.error(f"Error clearing history: {str(e)}")
+        return jsonify({'error': 'Error clearing history'}), 500
